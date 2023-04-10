@@ -31,10 +31,10 @@ is_raspbian() {
 }
 
 if [[ "$(is_raspian)" = "1" ]]; then
-    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/pkglist-rpi.sh"
+    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/libs/pkglist-rpi.sh"
 fi
 if [[ "$(is_raspian)" = "0" ]]; then
-    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/pkglist-generic.sh"
+    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/libs/pkglist-generic.sh"
 fi
 
 
