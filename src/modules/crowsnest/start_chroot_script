@@ -20,7 +20,23 @@ install_cleanup_trap
 
 # Module only Variables
 CN_BUILD_PACKAGE_FILE="/tmp/cn_packages.lst"
-CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/install.sh"
+
+# Helper Func
+is_raspbian() {
+    if [[ -f /boot/config.txt ]] && [[ -f /etc/rpi-issue ]]; then
+        echo "1"
+    else
+        echo "0"
+    fi
+}
+
+if [[ "$(is_raspian)" = "1" ]]; then
+    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/pkglist-rpi.sh"
+fi
+if [[ "$(is_raspian)" = "0" ]]; then
+    CN_BUILD_INSTALL_SH="/home/${BASE_USER}/crowsnest/tools/pkglist-generic.sh"
+fi
+
 
 echo_green "Installing crowsnest ..."
 
