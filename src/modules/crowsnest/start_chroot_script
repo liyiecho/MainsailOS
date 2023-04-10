@@ -12,7 +12,7 @@
 # shellcheck enable=requires-variable-braces
 
 # Error handling
-set -Ee
+set -Eex
 
 # shellcheck disable=SC1091
 source /common.sh
