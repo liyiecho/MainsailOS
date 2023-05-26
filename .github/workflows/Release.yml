@@ -64,7 +64,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: 'master'
+          ref: 'develop'
           fetch-depth: 0
 
       - name: Get latest tag
@@ -108,7 +108,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          ref: master
+          ref: develop
 
       - name: Create Matrix
         id: set-matrix
@@ -131,7 +131,7 @@ jobs:
         uses: mainsail-crew/MainsailOS-actions/build-image@master
         with:
           config: ${{ matrix.config }}
-          build-ref: master
+          build-ref: develop
 
       - name: Upload failed Logfile
         if: failure()
