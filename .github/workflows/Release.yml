@@ -16,7 +16,7 @@ jobs:
       - name: Clone develop repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: 'develop'
 
       - name: Get current version
@@ -41,21 +41,21 @@ jobs:
           message: 'chore: push version number to v${{ github.event.inputs.version }}'
           push: true
 
-  update-master-branch:
-    name: Update master branch
-    needs: push-version-number
-    runs-on: ubuntu-latest
-    steps:
-      - uses: everlytic/branch-merge@1.1.5
-        with:
-          github_token: ${{ secrets.PAT }}
-          source_ref: 'develop'
-          target_branch: 'master'
-          commit_message_template: '[Automated] Merged {source_ref} into target {target_branch}'
+  # update-master-branch:
+  #   name: Update master branch
+  #   needs: push-version-number
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: everlytic/branch-merge@1.1.5
+  #       with:
+  #         github_token: ${{ secrets.PAT }}
+  #         source_ref: 'develop'
+  #         target_branch: 'master'
+  #         commit_message_template: '[Automated] Merged {source_ref} into target {target_branch}'
 
   release:
     name: Create Release
-    needs: update-master-branch
+    # needs: update-master-branch
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.create-release.outputs.id }}
@@ -269,105 +269,105 @@ jobs:
           release_id: ${{ needs.release.outputs.id }}
           file: ${{ steps.move-image.outputs.image }}.json
 
-  finish:
-    name: Finish Release
-    needs: [ release, build ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish Release
-        uses: StuYarrow/publish-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          id: ${{ needs.release.outputs.id }}
+  # finish:
+  #   name: Finish Release
+  #   needs: [ release, build ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Publish Release
+  #       uses: StuYarrow/publish-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         id: ${{ needs.release.outputs.id }}
 
-  update-rpi-imager:
-    name: Update rpi-imager json
-    needs: [ release, build, finish ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download snipes
-        uses: robinraju/release-downloader@v1.6
-        with:
-          tag: ${{ github.event.inputs.version }}
-          fileName: "${{ needs.build.outputs.base_name }}-raspberry-*.json"
-          out-file-path: "downloads"
+  # update-rpi-imager:
+  #   name: Update rpi-imager json
+  #   needs: [ release, build, finish ]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download snipes
+  #       uses: robinraju/release-downloader@v1.6
+  #       with:
+  #         tag: ${{ github.event.inputs.version }}
+  #         fileName: "${{ needs.build.outputs.base_name }}-raspberry-*.json"
+  #         out-file-path: "downloads"
 
-      - name: Combine JSON
-        id: json
-        uses: actions/github-script@v6
-        with:
-          result-encoding: string
-          script: |
-            const downloadFolder = './downloads/'
-            const fs = require('fs')
-            const os_list = []
+      # - name: Combine JSON
+      #   id: json
+      #   uses: actions/github-script@v6
+      #   with:
+      #     result-encoding: string
+      #     script: |
+      #       const downloadFolder = './downloads/'
+      #       const fs = require('fs')
+      #       const os_list = []
 
-            fs.readdirSync(downloadFolder).forEach(file => {
-              const raw = fs.readFileSync('./downloads/' + file, {encoding:'utf8', flag:'r'})
-              try {
-                os_list.push(JSON.parse(raw))
-              } catch (err) {
-                console.log("Error parsing JSON string:", err)
-              }
-            })
+      #       fs.readdirSync(downloadFolder).forEach(file => {
+      #         const raw = fs.readFileSync('./downloads/' + file, {encoding:'utf8', flag:'r'})
+      #         try {
+      #           os_list.push(JSON.parse(raw))
+      #         } catch (err) {
+      #           console.log("Error parsing JSON string:", err)
+      #         }
+      #       })
 
-            const json = JSON.stringify({os_list})
-            fs.writeFileSync('rpi-imager.json', json)
+      #       const json = JSON.stringify({os_list})
+      #       fs.writeFileSync('rpi-imager.json', json)
 
-      - name: Upload JSON
-        if: success()
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_id: ${{ needs.release.outputs.id }}
-          file: rpi-imager.json
+      # - name: Upload JSON
+      #   if: success()
+      #   uses: xresloader/upload-to-github-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     release_id: ${{ needs.release.outputs.id }}
+      #     file: rpi-imager.json
 
-      - name: Move in seperate dir
-        run: |
-          mkdir upload
-          mv rpi-imager.json ./upload
+      # - name: Move in seperate dir
+      #   run: |
+      #     mkdir upload
+      #     mv rpi-imager.json ./upload
 
-      - name: Upload to remote server
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
-        with:
-          server: ${{ secrets.OSHOST }}
-          username: ${{ secrets.OSUSER }}
-          password: ${{ secrets.OSPASSWORD }}
-          local-dir: ./upload/
+      # - name: Upload to remote server
+      #   uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      #   with:
+      #     server: ${{ secrets.OSHOST }}
+      #     username: ${{ secrets.OSUSER }}
+      #     password: ${{ secrets.OSPASSWORD }}
+      #     local-dir: ./upload/
 
-  update-changelog:
-    needs: update-rpi-imager
-    name: Generate changelog
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'develop'
-          token: ${{ secrets.PAT }}
-          fetch-depth: 0
+  # update-changelog:
+  #   needs: update-rpi-imager
+  #   name: Generate changelog
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #       with:
+  #         ref: 'develop'
+  #         token: ${{ secrets.PAT }}
+  #         fetch-depth: 0
 
-      - name: Get latest tag
-        id: latest_tag
-        shell: bash
-        run: |
-          echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+  #     - name: Get latest tag
+  #       id: latest_tag
+  #       shell: bash
+  #       run: |
+  #         echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
 
-      - name: Generate a changelog
-        uses: orhun/git-cliff-action@v1
-        id: git-cliff
-        with:
-          config: cliff.toml
-          args: 0.5.0..${{ steps.latest_tag.outputs.TAG_NAME }}
-        env:
-          OUTPUT: ${{ github.workspace }}/CHANGELOG.md
+  #     - name: Generate a changelog
+  #       uses: orhun/git-cliff-action@v1
+  #       id: git-cliff
+  #       with:
+  #         config: cliff.toml
+  #         args: 0.5.0..${{ steps.latest_tag.outputs.TAG_NAME }}
+  #       env:
+  #         OUTPUT: ${{ github.workspace }}/CHANGELOG.md
 
-      - name: Show CHANGELOG
-        run: |
-          cat CHANGELOG.md
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: 'docs(changelog): update changelog'
-          file_pattern: CHANGELOG.md
+      # - name: Show CHANGELOG
+      #   run: |
+      #     cat CHANGELOG.md
+      # - uses: stefanzweifel/git-auto-commit-action@v4
+      #   with:
+      #     commit_message: 'docs(changelog): update changelog'
+      #     file_pattern: CHANGELOG.md
