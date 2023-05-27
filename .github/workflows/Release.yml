@@ -269,17 +269,17 @@ jobs:
           release_id: ${{ needs.release.outputs.id }}
           file: ${{ steps.move-image.outputs.image }}.json
 
-  # finish:
-  #   name: Finish Release
-  #   needs: [ release, build ]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Publish Release
-  #       uses: StuYarrow/publish-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         id: ${{ needs.release.outputs.id }}
+  finish:
+    name: Finish Release
+    needs: [ release, build ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Release
+        uses: StuYarrow/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          id: ${{ needs.release.outputs.id }}
 
   # update-rpi-imager:
   #   name: Update rpi-imager json
