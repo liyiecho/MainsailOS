@@ -78,6 +78,7 @@ fi
     if [[ -f "/etc/armbian-release" ]]; then
         echo_green "Armbian release file found! moving to: 'armbian-release-info.txt'"
         mv /etc/armbian-release /etc/armbian-release-info.txt
+        sed -i "s|/etc/armbian-release|/etc/armbian-release-info.txt|g" /etc/initramfs/post-update.d/99-uboot
     else
         echo_red "Armbian release file not found! [SKIPPED]"
     fi
