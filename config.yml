@@ -1,7 +1,7 @@
 - name: armbian-msm8916-bookworm
   type: armbian
   img_download_url: "https://github.com/liyiecho/armbian-msm8916/releases/latest/download/Armbian.img.xz"
-  img_hash_url: "https://github.com/liyiecho/armbian-msm8916/releases/latest/download/Armbian.img.sha256"
+  img_hash_url: "https://github.com/liyiecho/armbian-msm8916/releases/latest/download/Armbian.img.xz.sha256"
   env:
     ARCH: arm64
     DISTRO: armbian
